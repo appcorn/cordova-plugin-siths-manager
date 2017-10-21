@@ -1,0 +1,55 @@
+<?xml version='1.0' encoding='utf-8'?>
+<plugin id="cordova-plugin-siths-manager" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+  <name>SITHSManager</name>
+  
+  <js-module name="sithsmanager" src="www/SITHSManager.js">
+    <clobbers target="sithsmanager" />
+  </js-module>
+  
+  <platform name="ios">
+    <config-file target="config.xml" parent="/*">
+      <feature name="SITHSManager">
+        <param name="ios-package" value="SITHSManagerPlugin" />
+        <param name="onload" value="true" />
+      </feature>
+    </config-file>
+    
+    <header-file src="src/ios/SITHSManager-Bridging-Header.h" />
+    <source-file src="src/ios/SITHSManagerPlugin.swift" />
+    
+    <source-file src="src/ios/SITHSManager/ASN1Parser.swift" />
+    <source-file src="src/ios/SITHSManager/ObserverProxy.swift" />
+    <source-file src="src/ios/SITHSManager/SITHSCardCertificate.swift" />
+    <source-file src="src/ios/SITHSManager/SITHSManager.swift" />
+    <source-file src="src/ios/SITHSManager/SmartcardAPDU.swift" />
+    <source-file src="src/ios/SITHSManager/Utilities.swift" />
+    
+    <header-file src="src/ios/Precise/include/PBAccessory.h" />
+    <header-file src="src/ios/Precise/include/PBBiometry.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryDatabase.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryEnrollConfig.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryFinger.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryGUI.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryTemplate.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryUser.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryVerifier.h" />
+    <header-file src="src/ios/Precise/include/PBBiometryVerifyConfig.h" />
+    <header-file src="src/ios/Precise/include/PBLibrary.h" />
+    <header-file src="src/ios/Precise/include/PBSmartcard.h" />
+    <header-file src="src/ios/Precise/include/winscard.h" />
+    <header-file src="src/ios/Precise/include/wintypes.h" />
+    
+    <framework src="src/ios/Precise.framework" custom="true" />
+    
+    <framework src="AudioToolbox.framework" />
+    
+    <config-file target="*-Info.plist" parent="UISupportedExternalAccessoryProtocols">
+      <array>
+        <string>com.precisebiometrics.ccidbulk</string>
+        <string>com.precisebiometrics.ccidinterrupt</string>
+        <string>com.precisebiometrics.ccidcontrol</string>
+      </array>
+    </config-file>
+
+  </platform>
+</plugin>
