@@ -1,6 +1,10 @@
 import Foundation
 
 extension SITHSManagerState {
+
+    /// Creates a dictionary representation of the state, ready to be sent in the JS bridge.
+    ///
+    /// - Returns: A dictionary representation of the state enum value, including more detailed information when available.
     func dictionaryRepresentation() -> [String: AnyObject] {
         let dictionary: [String: AnyObject]
 
@@ -50,11 +54,11 @@ extension SITHSManagerState {
             // We have a set of at least one SITHS certificate (see the `SITHSCardCertificate` struct for more information)
             let certificates: [[String: AnyObject]] = certificates.map { certificate in
                 return [
-                    "derData": certificate.derData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
-                    "cardNumber": certificate.cardNumber,
-                    "serialNumber": certificate.serialNumber.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
-                    "serialString": certificate.serialString,
-                    "subject": certificate.subject.reduce([String:String]()) { dict, pair in
+                    "DerData": certificate.derData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
+                    "CardNumber": certificate.cardNumber,
+                    "SerialNumber": certificate.serialNumber.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
+                    "SerialString": certificate.serialString,
+                    "Subject": certificate.subject.reduce([String:String]()) { dict, pair in
                         var subject = dict
                         subject["\(pair.0)"] = pair.1
                         return subject
@@ -70,29 +74,48 @@ extension SITHSManagerState {
 
         return dictionary
     }
+
 }
 
 @objc(SITHSManagerPlugin) class SITHSManagerPlugin : CDVPlugin {
+
+    /// Cordova plugin callback ID for state change subscription.
     var callbackId: String?
+
+    /// Cordova plugin callback ID for debug message subscription.
     var debugCallbackId: String?
 
+    /// The main SITHSManager instance.
     var manager: SITHSManager?
+
+
+    // MARK: Initialization
 
     override func pluginInitialize() {
         manager = SITHSManager()
         super.pluginInitialize()
     }
 
-    private func sendState(state: SITHSManagerState) {
-        guard let callbackId = callbackId else {
+
+    // MARK: Public methods, exposed in JS bridge
+
+    /// Fetches the current SITHSManager state and calls the success callback. If the state could not be fetched, the error callback is called.
+    ///
+    /// - Parameter command: The default Cordova Invocation Command.
+    func getState(command: CDVInvokedUrlCommand) {
+        guard let state = manager?.state else {
+            let result = CDVPluginResult(status: CDVCommandStatus_ERROR)
+            commandDelegate!.sendPluginResult(result, callbackId: command.callbackId)
             return
         }
 
         let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:state.dictionaryRepresentation())
-        result.keepCallback = true
-        commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+        commandDelegate!.sendPluginResult(result, callbackId: command.callbackId)
     }
 
+    /// Starts subscribing the SITHSManager state, continously calling the success callback on changes.
+    ///
+    /// - Parameter command: The default Cordova Invocation Command.
     func start(command: CDVInvokedUrlCommand) {
         callbackId = command.callbackId
 
@@ -101,6 +124,9 @@ extension SITHSManagerState {
         }
     }
 
+    /// Stops the subscription of SITHSManager state changes.
+    ///
+    /// - Parameter command: The default Cordova Invocation Command.
     func stop(command: CDVInvokedUrlCommand) {
         if let callbackId = callbackId {
             let result = CDVPluginResult(status: CDVCommandStatus_OK)
@@ -111,16 +137,9 @@ extension SITHSManagerState {
         manager?.stateClosure = nil
     }
 
-    private func sendDebug(message: String) {
-        guard let callbackId = debugCallbackId else {
-            return
-        }
-
-        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:["message": message])
-        result.keepCallback = true
-        commandDelegate!.sendPluginResult(result, callbackId: callbackId)
-    }
-
+    /// Starts subscribing the SITHSManager debug log messages, continously calling the success callback on new messages.
+    ///
+    /// - Parameter command: The default Cordova Invocation Command.
     func startDebug(command: CDVInvokedUrlCommand) {
         debugCallbackId = command.callbackId
 
@@ -129,6 +148,9 @@ extension SITHSManagerState {
         }
     }
 
+    /// Stops the subscription of SITHSManager debug log messages.
+    ///
+    /// - Parameter command: The default Cordova Invocation Command.
     func stopDebug(command: CDVInvokedUrlCommand) {
         if let callbackId = debugCallbackId {
             let result = CDVPluginResult(status: CDVCommandStatus_OK)
@@ -140,54 +162,32 @@ extension SITHSManagerState {
     }
 
 
+    // MARK: Private methods
 
-    func echo(command: CDVInvokedUrlCommand) {
-        var pluginResult = CDVPluginResult(
-            status: CDVCommandStatus_ERROR
-        )
-
-        let msg = command.arguments[0] as? String ?? ""
-
-        if msg.characters.count > 0 {
-            /* UIAlertController is iOS 8 or newer only. */
-            let toastController: UIAlertController =
-                UIAlertController(
-                    title: "",
-                    message: msg,
-                    preferredStyle: .Alert
-            )
-
-            self.viewController?.presentViewController(
-                toastController,
-                animated: true,
-                completion: nil
-            )
-
-            let duration = Double(NSEC_PER_SEC) * 3.0
-
-            dispatch_after(
-                dispatch_time(
-                    DISPATCH_TIME_NOW,
-                    Int64(duration)
-                ),
-                dispatch_get_main_queue(),
-                {
-                    toastController.dismissViewControllerAnimated(
-                        true,
-                        completion: nil
-                    )
-                }
-            )
-
-            pluginResult = CDVPluginResult(
-                status: CDVCommandStatus_OK,
-                messageAsString: msg
-            )
+    /// Sends the provided state via the subscription callback.
+    ///
+    /// - Parameter state: The default Cordova Invocation Command.
+    private func sendState(state: SITHSManagerState) {
+        guard let callbackId = callbackId else {
+            return
         }
 
-        self.commandDelegate!.sendPluginResult(
-            pluginResult,
-            callbackId: command.callbackId
-        )
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:state.dictionaryRepresentation())
+        result.keepCallback = true
+        commandDelegate!.sendPluginResult(result, callbackId: callbackId)
     }
+
+    /// Sends the provided debug message via the subscription callback.
+    ///
+    /// - Parameter state: The default Cordova Invocation Command.
+    private func sendDebug(message: String) {
+        guard let callbackId = debugCallbackId else {
+            return
+        }
+
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:["message": message])
+        result.keepCallback = true
+        commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+    }
+
 }
