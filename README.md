@@ -7,7 +7,7 @@ description: SITHSManager Apache Cordova plugin
 
 This plugin provides an implementation of the [SITSHManager](https://github.com/appcorn/SITHSManager) Swift iOS module, used for reading and parsing the basic contents of Swedish SITHS identification smart cards with a Precise Biometrics card reader.
 
-This plugin adds the following three events to the `window` object:
+This plugin adds the following two events to the `window` object:
 
 * `sithsstatechange`
 * `sithsdebug`
@@ -21,6 +21,10 @@ This plugin also adds the following method to the `sithsmanager` object:
 ## Installation
 
     cordova plugin add cordova-plugin-siths-manager
+
+or
+
+    phonegap plugin add cordova-plugin-siths-manager
 
 ## Example project
 
