@@ -62,6 +62,5 @@
     </platform>
     <preference name="UseLegacySwiftLanguageVersion" value="true" />
     <preference name="version" value="2.3" />
-    <plugin name="cordova-plugin-add-swift-support" spec="~1.7.0" />
     <plugin name="cordova-plugin-siths-manager" spec="~1.0.0" />
 </widget>

@@ -6,6 +6,8 @@
     <clobbers target="sithsmanager" />
   </js-module>
   
+  <dependency id="cordova-plugin-add-swift-support" version="~1.7.0" />
+  
   <platform name="ios">
     <config-file target="config.xml" parent="/*">
       <feature name="SITHSManager">
