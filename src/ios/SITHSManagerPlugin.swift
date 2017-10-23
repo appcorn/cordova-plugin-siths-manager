@@ -12,23 +12,23 @@ extension SITHSManagerState {
         switch self {
         case .Unknown:
             dictionary = [
-                "state": "Unknown"
+                "state": "unknown"
             ]
         case .ReadingFromCard:
             dictionary = [
-                "state": "ReadingFromCard"
+                "state": "readingFromCard"
             ]
         case .Error(let error):
             switch error {
             case .SmartcardError(let message, let code):
                 dictionary = [
-                    "state": "Error",
+                    "state": "error",
                     "errorMessage": message,
                     "errorCode": code
                 ]
             case .InternalError(let error):
                 dictionary = [
-                    "state": "Error",
+                    "state": "error",
                     "errorMessage": "\(error)",
                     "errorCode": NSNull()
                 ]
@@ -36,43 +36,80 @@ extension SITHSManagerState {
 
         case .ReaderDisconnected:
             dictionary = [
-                "state": "ReaderDisconnected"
+                "state": "readerDisconnected"
             ]
         case .UnknownCardInserted:
             dictionary = [
-                "state": "UnknownCardInserted"
+                "state": "unknownCardInserted"
             ]
         case .CardWithoutCertificatesInserted:
             dictionary = [
-                "state": "CardWithoutCertificatesInserted"
+                "state": "cardWithoutCertificatesInserted"
             ]
         case .ReaderConnected:
             dictionary = [
-                "state": "ReaderConnected"
+                "state": "readerConnected"
             ]
         case .CardInserted(let certificates):
             // We have a set of at least one SITHS certificate (see the `SITHSCardCertificate` struct for more information)
             let certificates: [[String: AnyObject]] = certificates.map { certificate in
                 return [
-                    "DerData": certificate.derData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
-                    "CardNumber": certificate.cardNumber,
-                    "SerialNumber": certificate.serialNumber.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
-                    "SerialString": certificate.serialString,
-                    "Subject": certificate.subject.reduce([String:String]()) { dict, pair in
+                    "derData": certificate.derData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
+                    "cardNumber": certificate.cardNumber,
+                    "serialNumber": certificate.serialNumber.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
+                    "serialString": certificate.serialString,
+                    "subject": certificate.subject.reduce([String:String]()) { dict, pair in
                         var subject = dict
-                        subject["\(pair.0)"] = pair.1
+                        subject[pair.0.dictionaryKeyRepresentation()] = pair.1
                         return subject
                     }
                 ]
             }
 
             dictionary = [
-                "state": "CardInserted",
+                "state": "cardInserted",
                 "certificates": certificates
             ]
         }
 
         return dictionary
+    }
+
+}
+
+extension ASN1ObjectIdentifier {
+
+    /// Creates a camel cased string representation of the object identifier, suitable for a dictionary key.
+    ///
+    /// - Returns: A basic string representation of the enum value.
+    func dictionaryKeyRepresentation() -> String {
+        // Switch for the different states
+        switch self {
+        case .Undefined(_):
+            return "undefined"
+        case .SHA1WithRSAEncryption:
+            return "SHA1WithRSAEncryption"
+        case .CountryName:
+            return "countryName"
+        case .OrganizationName:
+            return "organizationName"
+        case .CommonName:
+            return "commonName"
+        case .Surname:
+            return "surname"
+        case .GivenName:
+            return "givenName"
+        case .SerialNumber:
+            return "serialNumber"
+        case .Title:
+            return "title"
+        case .KeyUsage:
+            return "keyUsage"
+        case .SubjectDirectoryAttributes:
+            return "subjectDirectoryAttributes"
+        case .CardNumber:
+            return "cardNumber"
+        }
     }
 
 }
