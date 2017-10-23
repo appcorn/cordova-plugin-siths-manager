@@ -1,12 +1,12 @@
 {
   "name": "cordova-plugin-siths-manager",
   "version": "0.0.5",
-  "description": "Cordova plugin description",
-  "homepage": "",
+  "description": "SITHSManager cordova plugin",
+  "homepage": "https://github.com/appcorn/cordova-plugin-siths-manager",
   "author": {
     "name": "Martin Alleus"
   },
-  "license": "",
+  "license": "MIT",
   "cordova": {
     "id": "cordova-plugin-siths-manager",
     "platforms": [
