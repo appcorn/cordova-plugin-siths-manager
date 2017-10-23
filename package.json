@@ -1,7 +1,7 @@
 {
   "name": "cordova-plugin-siths-manager",
   "version": "1.0.0",
-  "description": "SITHSManager cordova plugin",
+  "description": "SITHSManager Apache Cordova plugin",
   "homepage": "https://github.com/appcorn/cordova-plugin-siths-manager",
   "author": {
     "name": "Martin Alleus"
