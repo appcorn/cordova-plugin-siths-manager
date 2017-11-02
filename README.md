@@ -20,11 +20,17 @@ This plugin also adds the following method to the `sithsmanager` object:
 
 ## Installation
 
+First, add the plugin to your application, either by using the command line tools (`cordova` or `phonegap`):
+
     cordova plugin add cordova-plugin-siths-manager
 
-or
+Or by adding the plugin to your `config.xml` file:
 
-    phonegap plugin add cordova-plugin-siths-manager
+    <plugin name="cordova-plugin-siths-manager" spec="~1.0.0" />
+
+After you've added the plugin, you also need to make sure that the project is built using the legacy Swift version (2.3). This is done by adding the following preference to your `config.xml` file:
+
+    <preference name="UseLegacySwiftLanguageVersion" value="true" />
 
 ## Example project
 
