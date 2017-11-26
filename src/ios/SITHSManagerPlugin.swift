@@ -5,28 +5,28 @@ extension SITHSManagerState {
     /// Creates a dictionary representation of the state, ready to be sent in the JS bridge.
     ///
     /// - Returns: A dictionary representation of the state enum value, including more detailed information when available.
-    func dictionaryRepresentation() -> [String: AnyObject] {
-        let dictionary: [String: AnyObject]
+    func dictionaryRepresentation() -> [String: Any] {
+        let dictionary: [String: Any]
 
         // Switch for the different states
         switch self {
-        case .Unknown:
+        case .unknown:
             dictionary = [
                 "state": "unknown"
             ]
-        case .ReadingFromCard:
+        case .readingFromCard:
             dictionary = [
                 "state": "readingFromCard"
             ]
-        case .Error(let error):
+        case .error(let error):
             switch error {
-            case .SmartcardError(let message, let code):
+            case .smartcardError(let message, let code):
                 dictionary = [
                     "state": "error",
                     "errorMessage": message,
                     "errorCode": code
                 ]
-            case .InternalError(let error):
+            case .internalError(let error):
                 dictionary = [
                     "state": "error",
                     "errorMessage": "\(error)",
@@ -34,29 +34,29 @@ extension SITHSManagerState {
                 ]
             }
 
-        case .ReaderDisconnected:
+        case .readerDisconnected:
             dictionary = [
                 "state": "readerDisconnected"
             ]
-        case .UnknownCardInserted:
+        case .unknownCardInserted:
             dictionary = [
                 "state": "unknownCardInserted"
             ]
-        case .CardWithoutCertificatesInserted:
+        case .cardWithoutCertificatesInserted:
             dictionary = [
                 "state": "cardWithoutCertificatesInserted"
             ]
-        case .ReaderConnected:
+        case .readerConnected:
             dictionary = [
                 "state": "readerConnected"
             ]
-        case .CardInserted(let certificates):
+        case .cardInserted(let certificates):
             // We have a set of at least one SITHS certificate (see the `SITHSCardCertificate` struct for more information)
-            let certificates: [[String: AnyObject]] = certificates.map { certificate in
+            let certificates: [[String: Any]] = certificates.map { (certificate: SITHSCardCertificate) in
                 return [
-                    "derData": certificate.derData.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
+                    "derData": certificate.derData.base64EncodedString(),
                     "cardNumber": certificate.cardNumber,
-                    "serialNumber": certificate.serialNumber.base64EncodedStringWithOptions(NSDataBase64EncodingOptions(rawValue: 0)),
+                    "serialNumber": certificate.serialNumber.base64EncodedString(),
                     "serialString": certificate.serialString,
                     "subject": certificate.subject.reduce([String:String]()) { dict, pair in
                         var subject = dict
@@ -85,29 +85,29 @@ extension ASN1ObjectIdentifier {
     func dictionaryKeyRepresentation() -> String {
         // Switch for the different states
         switch self {
-        case .Undefined(_):
+        case .undefined(_):
             return "undefined"
-        case .SHA1WithRSAEncryption:
+        case .sha1WithRSAEncryption:
             return "SHA1WithRSAEncryption"
-        case .CountryName:
+        case .countryName:
             return "countryName"
-        case .OrganizationName:
+        case .organizationName:
             return "organizationName"
-        case .CommonName:
+        case .commonName:
             return "commonName"
-        case .Surname:
+        case .surname:
             return "surname"
-        case .GivenName:
+        case .givenName:
             return "givenName"
-        case .SerialNumber:
+        case .serialNumber:
             return "serialNumber"
-        case .Title:
+        case .title:
             return "title"
-        case .KeyUsage:
+        case .keyUsage:
             return "keyUsage"
-        case .SubjectDirectoryAttributes:
+        case .subjectDirectoryAttributes:
             return "subjectDirectoryAttributes"
-        case .CardNumber:
+        case .cardNumber:
             return "cardNumber"
         }
     }
@@ -139,36 +139,36 @@ extension ASN1ObjectIdentifier {
     /// Fetches the current SITHSManager state and calls the success callback. If the state could not be fetched, the error callback is called.
     ///
     /// - Parameter command: The default Cordova Invocation Command.
-    func getState(command: CDVInvokedUrlCommand) {
+    func getState(_ command: CDVInvokedUrlCommand) {
         guard let state = manager?.state else {
             let result = CDVPluginResult(status: CDVCommandStatus_ERROR)
-            commandDelegate!.sendPluginResult(result, callbackId: command.callbackId)
+            commandDelegate!.send(result, callbackId: command.callbackId)
             return
         }
 
-        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:state.dictionaryRepresentation())
-        commandDelegate!.sendPluginResult(result, callbackId: command.callbackId)
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs:state.dictionaryRepresentation())
+        commandDelegate!.send(result, callbackId: command.callbackId)
     }
 
     /// Starts subscribing the SITHSManager state, continously calling the success callback on changes.
     ///
     /// - Parameter command: The default Cordova Invocation Command.
-    func start(command: CDVInvokedUrlCommand) {
+    func start(_ command: CDVInvokedUrlCommand) {
         callbackId = command.callbackId
 
         manager?.stateClosure = { [weak self] state in
-            self?.sendState(state)
+            self?.send(state: state)
         }
     }
 
     /// Stops the subscription of SITHSManager state changes.
     ///
     /// - Parameter command: The default Cordova Invocation Command.
-    func stop(command: CDVInvokedUrlCommand) {
+    func stop(_ command: CDVInvokedUrlCommand) {
         if let callbackId = callbackId {
             let result = CDVPluginResult(status: CDVCommandStatus_OK)
-            result.keepCallback = false
-            commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+            result?.keepCallback = false
+            commandDelegate!.send(result, callbackId: callbackId)
         }
         callbackId = nil
         manager?.stateClosure = nil
@@ -177,22 +177,22 @@ extension ASN1ObjectIdentifier {
     /// Starts subscribing the SITHSManager debug log messages, continously calling the success callback on new messages.
     ///
     /// - Parameter command: The default Cordova Invocation Command.
-    func startDebug(command: CDVInvokedUrlCommand) {
+    func startDebug(_ command: CDVInvokedUrlCommand) {
         debugCallbackId = command.callbackId
 
         manager?.debugLogClosure = { [weak self] message in
-            self?.sendDebug(message)
+            self?.sendDebug(message: message)
         }
     }
 
     /// Stops the subscription of SITHSManager debug log messages.
     ///
     /// - Parameter command: The default Cordova Invocation Command.
-    func stopDebug(command: CDVInvokedUrlCommand) {
+    func stopDebug(_ command: CDVInvokedUrlCommand) {
         if let callbackId = debugCallbackId {
             let result = CDVPluginResult(status: CDVCommandStatus_OK)
-            result.keepCallback = false
-            commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+            result?.keepCallback = false
+            commandDelegate!.send(result, callbackId: callbackId)
         }
         debugCallbackId = nil
         manager?.stateClosure = nil
@@ -204,14 +204,14 @@ extension ASN1ObjectIdentifier {
     /// Sends the provided state via the subscription callback.
     ///
     /// - Parameter state: The default Cordova Invocation Command.
-    private func sendState(state: SITHSManagerState) {
+    private func send(state: SITHSManagerState) {
         guard let callbackId = callbackId else {
             return
         }
 
-        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:state.dictionaryRepresentation())
-        result.keepCallback = true
-        commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs:state.dictionaryRepresentation())
+        result?.keepCallback = true
+        commandDelegate!.send(result, callbackId: callbackId)
     }
 
     /// Sends the provided debug message via the subscription callback.
@@ -222,9 +222,9 @@ extension ASN1ObjectIdentifier {
             return
         }
 
-        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAsDictionary:["message": message])
-        result.keepCallback = true
-        commandDelegate!.sendPluginResult(result, callbackId: callbackId)
+        let result = CDVPluginResult(status: CDVCommandStatus_OK, messageAs:["message": message])
+        result?.keepCallback = true
+        commandDelegate!.send(result, callbackId: callbackId)
     }
 
 }
