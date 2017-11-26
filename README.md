@@ -28,10 +28,6 @@ Or by adding the plugin to your `config.xml` file:
 
     <plugin name="cordova-plugin-siths-manager" spec="~1.0.0" />
 
-After you've added the plugin, you also need to make sure that the project is built using the legacy Swift version (2.3). This is done by adding the following preference to your `config.xml` file:
-
-    <preference name="UseLegacySwiftLanguageVersion" value="true" />
-
 ## Example project
 
 There is an example project in the `example` directory. This project has been successfully built and tested with [PhoneGap Build](https://build.phonegap.com/).
